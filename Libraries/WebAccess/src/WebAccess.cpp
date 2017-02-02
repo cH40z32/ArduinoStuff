@@ -1,0 +1,224 @@
+#include "Arduino.h"
+#include <SPI.h>
+#include <Ethernet.h>
+#include "WebAccess.h"
+
+const char  headerEndMarker[]  = "\r\n\r\n";
+const size_t messageLength = 255;
+char message[messageLength];
+
+const char server[]  = "www.heydorn.biz";
+const char  AjaxControllerPath[]  = "/ClimaControlMonitor/AjaxController.php";
+const char  GetChannelConfigParams[]  = "?action=Embedded&channel=";
+bool isProcessingBody = false;
+unsigned int index = 0;
+
+WebAccess::WebAccess() :
+		SDStorage()
+{
+	Success = false;
+}
+
+void WebAccess::downloadChannelConfig(const char * channel)
+{
+	Success = true;
+
+	char parameters[200] = "";
+	strcat(parameters, GetChannelConfigParams);
+	strcat(parameters, channel);
+
+	SD.remove(channel);
+	File file = SD.open(channel, FILE_WRITE);
+
+	if (file)
+	{
+		if (connect())
+		{
+			printRequest(parameters);
+			waitForData();
+			consumeHeader();
+			while (client.connected() || client.available())
+			{
+				file.print((char) client.read());
+			}
+
+			client.stop();
+		}
+		else
+		{
+			Success = false;
+		}
+		file.close();
+	}
+	else
+	{
+		Success = false;
+	}
+}
+bool WebAccess::connect()
+{
+	Ethernet.maintain();
+	index = 0;
+	message[index] = '\0';
+
+	if (client.connect(server, 80) == 1)
+	{
+		Success = true;
+		return true;
+	}
+	else
+	{
+		Success = false;
+		return false;
+	}
+
+}
+DateTime WebAccess::getRemoteTime()
+{
+	char *result = getChannelConfig("DateTime");
+	int year, month, day, hour, minute, second;
+	sscanf(result, "%d:%d:%d:%d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+	DateTime timestamp = DateTime(year, month, day, hour, minute, second);
+	return timestamp;
+}
+
+char* WebAccess::getChannelConfig(const char * channel)
+{
+	char parameters[60] = "";
+	strcat(parameters, GetChannelConfigParams);
+	strcat(parameters, channel);
+	return getString(parameters);
+}
+
+char* WebAccess::getString(const char * parameters)
+{
+	if (connect())
+	{
+		printRequest(parameters);
+		waitForData();
+		consumeHeader();
+		while (client.connected() || client.available())
+		{
+			if (checkOverflow())
+			{
+				return message;
+			}
+			message[index++] = client.read();
+			message[index] = '\0';
+		}
+		client.stop();
+
+	}
+	return message;
+}
+
+bool WebAccess::pushMeasure(InputState input, OutputState out)
+{
+	if (connect())
+	{
+		printPushRequest(input, out);
+		waitForData();
+		consumeHeader();
+		while (client.connected() || client.available())
+		{
+			if (checkOverflow())
+				return false;
+			client.read();
+		}
+		client.stop();
+		return true;
+	}
+	return false;
+}
+
+void WebAccess::begin(uint8_t *mac_address)
+{
+	SDStorage::begin();
+	delay(1000);
+	Ethernet.begin(mac_address);
+	delay(1000);
+}
+
+void WebAccess::printPushRequest(InputState input, OutputState out)
+{
+	client.print(F("GET "));
+	client.print(AjaxControllerPath);
+	client.print(F("?action=AddMeasure"));
+
+	client.print(F("&Temperature="));
+	client.print(input.Temperature);
+	client.print(F("&WantedTemperature="));
+	client.print(out.WantedTemperature);
+	client.print(F("&Humidity="));
+	client.print(input.Humidity);
+	client.print(F("&WantedHumidity="));
+	client.print(out.WantedHumidity);
+
+	client.print(F("&IsVantillating="));
+	client.print(out.IsVantillating ? 1 : 0);
+
+	client.print(F("&IsIlluminating="));
+	client.print(out.IsIlluminating ? 1 : 0);
+	client.print(F("&IsChannelAActive="));
+	client.print(out.IsChannelAActive ? 1 : 0);
+	client.print(F("&IsChannelBActive="));
+	client.print(out.IsChannelBActive ? 1 : 0);
+
+	client.println(F(" HTTP/1.1"));
+	client.print(F("Host: "));
+	client.println(server);
+	client.println(F("Connection: close"));
+	client.println();
+}
+
+void WebAccess::printRequest(const char * parameters)
+{
+	client.print(F("GET "));
+	client.print(AjaxControllerPath);
+	client.print(parameters);
+	client.println(F(" HTTP/1.1"));
+	client.print(F("Host: "));
+	client.println(server);
+	client.println(F("Connection: close"));
+	client.println();
+}
+
+void WebAccess::waitForData()
+{
+	while (client.connected() && !client.available())
+		delay(1); //waits for data
+	isProcessingBody = false;
+}
+
+bool WebAccess::checkOverflow()
+{
+	if (index >= messageLength - 1)
+	{
+		Success = false;
+		message[index] = '\0';
+		client.stop();
+		return true;
+	}
+	return false;
+}
+
+void WebAccess::consumeHeader()
+{
+	while (client.connected() || client.available())
+	{
+		if (checkOverflow())
+		{
+			return;
+		}
+		message[index++] = (char) client.read();
+		message[index] = '\0';
+		if (!isProcessingBody && strstr(message, headerEndMarker))
+		{
+			index = 0;
+			isProcessingBody = true;
+			message[0] = '\0';
+		}
+
+	}
+
+}

@@ -1,0 +1,127 @@
+#include "Arduino.h"
+#include <SPI.h>
+#include <Ethernet.h>
+#include "PlugDataAccess.h"
+
+const char headerEndMarker[] = "\r\n\r\n";
+const char headerSuccess[] = "200 OK";
+const size_t messageLength = 255;
+char message[messageLength];
+
+const char server[] = "www.heydorn.biz";
+const char AjaxControllerPath[] = "/PlugConnectorControl/AjaxController.php";
+const char GetChannelConfigParams[] = "?action=GetConfig&old=";
+bool isProcessingBody = false;
+unsigned int index = 0;
+
+PlugDataAccess::PlugDataAccess()
+{
+	Success = false;
+}
+
+bool PlugDataAccess::connect()
+{
+	Ethernet.maintain();
+	index = 0;
+	message[index] = '\0';
+
+	if (client.connect(server, 80) == 1)
+	{
+		Success = true;
+		return true;
+	}
+	else
+	{
+		Success = false;
+		return false;
+	}
+
+}
+
+void PlugDataAccess::begin(uint8_t *mac_address)
+{
+	Ethernet.begin(mac_address);
+	delay(1000);
+}
+
+char* PlugDataAccess::getChannelConfig(const char * data)
+{
+	if (connect())
+	{
+		char parameters[60] = "";
+		strcat(parameters, GetChannelConfigParams);
+		strcat(parameters, data);
+		Serial.println(parameters);
+		printRequest(parameters);
+		waitForData();
+		consumeHeader();
+
+		while (client.connected() || client.available())
+		{
+			if (checkOverflow())
+			{
+				return message;
+			}
+			message[index++] = client.read();
+			message[index] = '\0';
+		}
+		client.stop();
+
+	}
+	return message;
+}
+
+void PlugDataAccess::printRequest(const char * parameters)
+{
+	client.print(F("GET "));
+	client.print(AjaxControllerPath);
+	client.print(parameters);
+	client.println(F(" HTTP/1.1"));
+	client.print(F("Host: "));
+	client.println(server);
+	client.println(F("Connection: close"));
+	client.println();
+}
+
+void PlugDataAccess::waitForData()
+{
+	while (client.connected() && !client.available())
+		delay(1); //waits for data
+	isProcessingBody = false;
+}
+
+bool PlugDataAccess::checkOverflow()
+{
+	if (index >= messageLength - 1)
+	{
+		Success = false;
+		message[index] = '\0';
+		client.stop();
+		return true;
+	}
+	return false;
+}
+
+void PlugDataAccess::consumeHeader()
+{
+	while (client.connected() || client.available())
+	{
+		if (checkOverflow())
+		{
+			return;
+		}
+		message[index++] = (char) client.read();
+		message[index] = '\0';
+		if (strstr(message, headerSuccess))
+		{
+			Success = true;
+		}
+		if (!isProcessingBody && strstr(message, headerEndMarker))
+		{
+			index = 0;
+			isProcessingBody = true;
+			message[0] = '\0';
+		}
+
+	}
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Move &apos;SdFormatter.ino&apos; to &apos;Examples_SD&apos;" description="Move &apos;SdFormatter.ino&apos; to &apos;Examples_SD&apos;" destination="/Examples_SD" element1="libraries/SdFat/examples/SdFormatter/SdFormatter.ino" flags="7" id="org.eclipse.ltk.core.refactoring.move.resources" resources="1" stamp="1485548549667" updateReferences="true"/>
+</session>

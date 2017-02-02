@@ -1,0 +1,52 @@
+19:48:26 **** Incremental Build of configuration Release for project PlugConnectorControl ****
+"C:\\Program Files\\Arduino Eclipse Neon\\arduinoPlugin\\tools\\make\\make" all 
+'Building file: ../.ino.cpp'
+'Starting C++ compile'
+"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\tools\arduino\avr-gcc\4.9.2-atmel3.5.3-arduino2/bin/avr-g++" -c -g -Os -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10609 -DARDUINO_AVR_UNO -DARDUINO_ARCH_AVR   -I"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\packages\arduino\hardware\avr\1.6.16\cores\arduino" -I"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\packages\arduino\hardware\avr\1.6.16\variants\standard" -I"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\libraries\Ethernet\1.1.2" -I"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\libraries\Ethernet\1.1.2\src" -I"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\packages\arduino\hardware\avr\1.6.16\libraries\SPI" -I"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\packages\arduino\hardware\avr\1.6.16\libraries\SPI\src" -I"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\packages\arduino\hardware\avr\1.6.16\libraries\EEPROM" -I"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\packages\arduino\hardware\avr\1.6.16\libraries\EEPROM\src" -I"D:\Arduino\Libraries\PlugDataAccess" -I"D:\Arduino\Libraries\PlugDataAccess\src" -MMD -MP -MF".ino.cpp.d" -MT".ino.cpp.o" -D__IN_ECLIPSE__=1 -x c++ "../.ino.cpp" -o ".ino.cpp.o"  -Wall
+In file included from ../.ino.cpp:14:0:
+../PlugConnectorControl.ino: In function 'void loop()':
+../PlugConnectorControl.ino:56:21: warning: comparison with string literal results in unspecified behaviour [-Waddress]
+  if (response[0] == "\0")
+                     ^
+../PlugConnectorControl.ino:56:21: warning: ISO C++ forbids comparison between pointer and integer [-fpermissive]
+../PlugConnectorControl.ino:59:21: warning: comparison with string literal results in unspecified behaviour [-Waddress]
+  if (response[0] != "\0" && !strstr(currentConfig, response))
+                     ^
+../PlugConnectorControl.ino:59:21: warning: ISO C++ forbids comparison between pointer and integer [-fpermissive]
+'Finished building: ../.ino.cpp'
+' '
+'Starting combiner'
+"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\tools\arduino\avr-gcc\4.9.2-atmel3.5.3-arduino2/bin/avr-gcc" -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=atmega328p -o "D:/Arduino/PlugConnectorControl/Release/PlugConnectorControl.elf"   .\.ino.cpp.o  .\libraries\SPI\src\SPI.cpp.o  .\libraries\PlugDataAccess\src\PlugDataAccess.cpp.o  .\libraries\Ethernet\src\utility\socket.cpp.o .\libraries\Ethernet\src\utility\w5100.cpp.o  .\libraries\Ethernet\src\Dhcp.cpp.o .\libraries\Ethernet\src\Dns.cpp.o .\libraries\Ethernet\src\Ethernet.cpp.o .\libraries\Ethernet\src\EthernetClient.cpp.o .\libraries\Ethernet\src\EthernetServer.cpp.o .\libraries\Ethernet\src\EthernetUdp.cpp.o   arduino.ar   "-LD:/Arduino/PlugConnectorControl/Release" -lm
+'Finished building: PlugConnectorControl.elf'
+' '
+'Create eeprom image'
+"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\tools\arduino\avr-gcc\4.9.2-atmel3.5.3-arduino2/bin/avr-objcopy" -O ihex -R .eeprom  "D:\Arduino\PlugConnectorControl/Release/PlugConnectorControl.elf" "D:\Arduino\PlugConnectorControl/Release/PlugConnectorControl.hex"
+"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\tools\arduino\avr-gcc\4.9.2-atmel3.5.3-arduino2/bin/avr-objcopy" -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0  "D:\Arduino\PlugConnectorControl/Release/PlugConnectorControl.elf" "D:\Arduino\PlugConnectorControl/Release/PlugConnectorControl.eep"
+'Finished building: PlugConnectorControl.hex'
+' '
+'Building target: PlugConnectorControl'
+'Printing size:'
+"C:\Program Files\Arduino Eclipse Neon\arduinoPlugin\tools\arduino\avr-gcc\4.9.2-atmel3.5.3-arduino2/bin/avr-size" -A "D:/Arduino/PlugConnectorControl/Release/PlugConnectorControl.elf"
+D:/Arduino/PlugConnectorControl/Release/PlugConnectorControl.elf  :
+section                      size      addr
+.data                         330   8388864
+.text                       15230         0
+.bss                         1029   8389194
+.comment                       17         0
+.note.gnu.avr.deviceinfo       64         0
+.debug_aranges                208         0
+.debug_info                 51985         0
+.debug_abbrev               11183         0
+.debug_line                  8891         0
+.debug_frame                 3476         0
+.debug_str                   8170         0
+.debug_loc                  24415         0
+.debug_ranges                1320         0
+Total                      126318
+
+
+'Finished building target: PlugConnectorControl'
+' '
+
+19:48:30 Build Finished (took 4s.272ms)
+

@@ -1,0 +1,50 @@
+#include "Arduino.h"
+#include "PlugDataAccess.h"
+
+int startPin = 2;
+int endPin = 11;
+int currentPin = 2;
+
+PlugDataAccess dataAccess;
+
+byte MAC[] =
+{ 0xDE, 0xAD, 0xAD, 0xEF, 0xFE, 0xED };
+char data[255];
+void setup()
+{
+	Serial.begin(9600);
+
+	Serial.println(F("Initializing DataAccess.."));
+	dataAccess.begin(MAC);
+	Serial.println(F("Initializing.."));
+
+	for (currentPin = startPin; currentPin <= endPin; currentPin++)
+	{
+		pinMode(currentPin, OUTPUT);           // set pin to input
+	}
+	delay(500);
+	for (currentPin = startPin; currentPin <= endPin; currentPin += 2)
+	{
+		Serial.print(F("Checking Channel: "));
+		Serial.println(currentPin / 2);
+		Serial.println("activating..");
+		digitalWrite(currentPin, HIGH);
+		delay(500);
+		Serial.println("waiting..");
+		digitalWrite(currentPin, LOW);
+		delay(500);
+		Serial.println("deactivating..");
+		digitalWrite(currentPin + 1, HIGH);
+		delay(500);
+		Serial.println("waiting..");
+		digitalWrite(currentPin + 1, LOW);
+		delay(500);
+	}
+}
+
+void loop()
+{
+	return;
+	char *response = dataAccess.getChannelConfig(data);
+	Serial.println(response);
+}
